@@ -1,0 +1,62 @@
+{
+  "name": "collgeerpsys",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/autoload": "^6.3.1",
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/env": "^6.0.0",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/multipart": "^10.0.0",
+    "@fastify/redis": "^7.2.0",
+    "@types/js-cookie": "^3.0.6",
+    "axios": "^1.15.0",
+    "bcrypt": "^6.0.0",
+    "clsx": "^2.1.1",
+    "cookie-js": "^0.0.1",
+    "csv-parse": "^6.2.1",
+    "exceljs": "^4.4.0",
+    "fastify": "^5.8.5",
+    "js-cookie": "^3.0.5",
+    "lucide-react": "^1.8.0",
+    "minio": "^8.0.7",
+    "mongoose": "^9.4.1",
+    "next": "^14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "redis": "^5.12.1",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.3.6",
+    "zod-to-json-schema": "^3.25.2"
+  },
+  "devDependencies": {
+    "@fastify/auth": "^5.0.4",
+    "@types/bcrypt": "^6.0.0",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/redis": "^4.0.10",
+    "autoprefixer": "^10.5.0",
+    "concurrently": "^9.2.1",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^4.2.2",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
+  }
+}

@@ -1,0 +1,960 @@
+================================================================================
+                    COLLEGE ERP SYSTEM — FRONTEND BUILD PROMPT
+                         Complete Implementation Brief
+================================================================================
+
+You are building the frontend for a College ERP System — a comprehensive web-based 
+platform that digitizes all academic, administrative, and operational processes for 
+a college/university. The design language is MODERN MINIMALIST — clean, spacious, 
+typography-driven, with purposeful color and subtle micro-interactions.
+
+================================================================================
+SECTION 1: PROJECT SETUP & TECH STACK
+================================================================================
+
+Framework:        Next.js 14 (App Router, TypeScript)
+Styling:          CSS Modules + CSS Custom Properties (design tokens)
+Font:             Inter (Google Fonts) — weights: 400, 500, 600, 700
+Icons:            Lucide React (outlined, 1.5px stroke)
+Charts:           Recharts (line, bar, donut, sparkline)
+Forms:            React Hook Form + Zod (schema validation)
+State:            Tanstack Query v5 (server state) + React Context (auth/theme)
+Animations:       Framer Motion (respects prefers-reduced-motion)
+Date Handling:    date-fns
+HTTP Client:      Axios with interceptors (JWT refresh, error handling)
+
+Initialize with:
+  npx -y create-next-app@latest ./ --typescript --app --src-dir --eslint --no-tailwind
+
+Install dependencies:
+  npm install @tanstack/react-query axios react-hook-form @hookform/resolvers zod 
+  lucide-react recharts framer-motion date-fns
+
+================================================================================
+SECTION 2: DESIGN SYSTEM — TOKENS & VARIABLES
+================================================================================
+
+Create a global CSS file (src/styles/globals.css) with these design tokens:
+
+COLORS:
+  Light Mode:
+    --bg-primary:       #FAFAFA     (page canvas)
+    --bg-secondary:     #FFFFFF     (cards, surfaces)
+    --text-primary:     #111111     (headings, body text)
+    --text-secondary:   #6B7280     (labels, captions)
+    --text-muted:       #9CA3AF     (placeholders, hints)
+    --border:           #E5E7EB     (dividers, card borders)
+    --border-focus:     #111111     (input focus ring)
+
+  Dark Mode (via [data-theme="dark"]):
+    --bg-primary:       #0F0F0F
+    --bg-secondary:     #1A1A1A
+    --text-primary:     #F9FAFB
+    --text-secondary:   #9CA3AF
+    --border:           #2D2D2D
+
+  Accent:
+    --accent:           #2563EB     (primary actions, links)
+    --accent-hover:     #1D4ED8     (hover state)
+    --accent-light:     #EFF6FF     (accent backgrounds)
+
+  Semantic:
+    --success:          #059669
+    --warning:          #D97706
+    --error:            #DC2626
+    --info:             #0284C7
+
+TYPOGRAPHY:
+    --text-xs:    0.75rem / 1rem
+    --text-sm:    0.875rem / 1.25rem
+    --text-base:  1rem / 1.5rem
+    --text-lg:    1.125rem / 1.75rem
+    --text-xl:    1.25rem / 1.75rem
+    --text-2xl:   1.5rem / 2rem
+    --text-3xl:   1.875rem / 2.25rem
+
+SPACING:
+    --space-1: 0.25rem    --space-2: 0.5rem     --space-3: 0.75rem
+    --space-4: 1rem       --space-5: 1.25rem    --space-6: 1.5rem
+    --space-8: 2rem       --space-10: 2.5rem    --space-12: 3rem
+    --space-16: 4rem
+
+BORDERS & RADIUS:
+    --radius-sm: 4px      --radius-md: 8px      --radius-lg: 12px
+    --radius-xl: 16px     --radius-full: 9999px
+
+SHADOWS:
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04)
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.06)
+    --shadow-lg: 0 4px 16px rgba(0,0,0,0.08)
+    --shadow-xl: 0 8px 32px rgba(0,0,0,0.10)
+
+MOTION:
+    --ease-default: cubic-bezier(0.4, 0, 0.2, 1)
+    --duration-fast: 150ms
+    --duration-base: 250ms
+    --duration-slow: 350ms
+
+BREAKPOINTS:
+    sm: 640px   md: 768px   lg: 1024px   xl: 1280px   2xl: 1536px
+
+================================================================================
+SECTION 3: APP SHELL LAYOUT
+================================================================================
+
+The app has two layout modes:
+
+1. PUBLIC LAYOUT (no sidebar):
+   Used by: Landing page, Login, Forgot Password, Reset Password, Verify pages, 
+   404, 500
+   Structure: Full-page, centered content
+
+2. AUTHENTICATED LAYOUT (sidebar + top bar):
+   Used by: All 50+ internal pages
+
+   ┌──────────────────────────────────────────────────────────┐
+   │  TOP BAR (56px, sticky, z-50)                           │
+   │  [Logo] [Search (Cmd+K)] ──── [Notifications] [Avatar] │
+   ├─────────┬────────────────────────────────────────────────┤
+   │ SIDEBAR │  BREADCRUMB / PAGE TITLE                      │
+   │ (64px   │  ────────────────────────────────────────────  │
+   │ collapsed│                                               │
+   │ /240px  │            MAIN CONTENT AREA                  │
+   │ expanded)│           (max-width: 1280px, centered)       │
+   │         │           (padding: 24px desktop / 16px mobile)│
+   │         │                                                │
+   │         │                                                │
+   └─────────┴────────────────────────────────────────────────┘
+
+   SIDEBAR:
+   - Default: 64px wide, icon-only
+   - Hover or pin: expands to 240px with labels
+   - Active item: accent left-border (3px) + accent text color
+   - Sections grouped with muted uppercase label headers
+   - Mobile: hidden → hamburger triggers overlay drawer (slide from left)
+
+   TOP BAR:
+   - Left: College logo (40px SVG) + app name
+   - Center: Global search trigger (Cmd+K shortcut)
+   - Right: Notification bell with unread count badge + user avatar dropdown
+   - Avatar dropdown: Profile, Settings, Theme toggle, Logout
+
+   Grid System:
+   - Desktop: 12-column, 24px gap
+   - Tablet: 8-column, 16px gap
+   - Mobile: 4-column, 16px gap
+
+================================================================================
+SECTION 4: REUSABLE COMPONENT LIBRARY
+================================================================================
+
+Build these components in src/components/ — each with its own CSS Module:
+
+── NAVIGATION ──────────────────────────────────────────────────────────────────
+
+Sidebar
+  - Collapsible (64px ↔ 240px)
+  - Nav items: icon + label + optional badge count
+  - Grouped sections with muted headers
+  - Active state: accent left border + accent text
+  - Mobile: overlay drawer with backdrop
+
+Breadcrumbs
+  - Auto-generated from route segments
+  - Clickable ancestors, current = bold non-link
+  - Separator: "/" or chevron icon
+
+Tabs
+  - Underline variant (no box)
+  - Active = accent underline (2px) + font-600
+  - Lazy-loaded tab content
+  - Accessible: role="tablist", aria-selected
+
+BottomNav (mobile only)
+  - 5 icon max, fixed bottom, 56px height
+  - Active = filled icon + accent dot
+
+── DATA DISPLAY ────────────────────────────────────────────────────────────────
+
+DataTable
+  - Props: columns[], data[], sortable, pagination, onRowClick
+  - Sticky header row
+  - Alternating row background (subtle)
+  - Hover highlight row
+  - Sortable columns with chevron indicators
+  - Inline action buttons (icon buttons)
+  - Pagination footer: "Showing 1-20 of 342" + prev/next
+  - Mobile: transforms into card layout per row
+  - Empty state: centered illustration + message
+  - Loading state: skeleton rows
+
+StatCard
+  - Large number (text-3xl, font-700)
+  - Label below (text-sm, text-muted)
+  - Optional trend indicator: ↑ green / ↓ red with percentage
+  - White card + shadow-sm + radius-lg
+  - Hover: shadow-md transition
+
+Avatar
+  - Circle, sizes: 24/32/40/48px
+  - Image source or fallback initials on accent-light bg
+  - Optional status dot (online/offline)
+
+Badge
+  - Pill shape (radius-full)
+  - Variants: neutral, success, warning, error, info
+  - Size: text-xs, padding 2px 8px
+
+SkeletonLoader
+  - Pulse animation on neutral-200 bg
+  - Shape variants: text, circle, rectangle, card
+  - Match exact dimensions of target content
+
+── FORMS ───────────────────────────────────────────────────────────────────────
+
+TextInput
+  - Height: 40px, 1px border, radius-md
+  - Focus: 2px accent ring (box-shadow)
+  - Label above: text-sm, font-500
+  - Error state: red border + red error message below
+  - Optional: leading icon, trailing icon/button
+  - Integrated with React Hook Form (register prop)
+
+Textarea
+  - Auto-resize (min 3 rows)
+  - Character count bottom-right (text-muted)
+
+Select / Dropdown
+  - Custom styled (not native)
+  - Search/filter for > 8 options
+  - Multi-select with removable chips
+  - Keyboard navigable
+
+Checkbox
+  - 18x18px, radius-sm
+  - Checked: accent fill + white checkmark icon
+
+Radio
+  - 18x18px circle
+  - Selected: accent dot inside
+
+Toggle / Switch
+  - 36x20px pill track
+  - Circle knob slides
+  - Accent bg when on, neutral when off
+
+DatePicker
+  - Calendar popup
+  - Range selection mode for reports
+  - Keyboard accessible, arrow key navigation
+
+FileUpload
+  - Drag-and-drop zone with dashed border
+  - Click to browse fallback
+  - Preview thumbnail for images
+  - Progress bar during upload
+  - File type + size validation
+
+── BUTTONS ─────────────────────────────────────────────────────────────────────
+
+Button
+  - Variants: primary (accent bg), secondary (outline), ghost (text only),
+    danger (red bg)
+  - Height: 40px, radius-md, font-500
+  - Hover: primary darkens 10%, secondary gets accent-light bg,
+    ghost gets accent-light bg
+  - Active: scale(0.98) transform
+  - Loading state: spinner replaces text, button disabled
+  - Sizes: sm (32px), md (40px), lg (48px)
+
+IconButton
+  - 36x36px square, ghost style
+  - Tooltip on hover (delay 500ms)
+
+FAB (Floating Action Button)
+  - 56x56px circle, accent bg, shadow-lg
+  - Fixed bottom-right position
+  - Mobile only, hides on desktop
+  - Primary action (e.g., "Add" / "Compose")
+
+── FEEDBACK ────────────────────────────────────────────────────────────────────
+
+Toast
+  - Position: bottom-right
+  - Auto-dismiss: 5s
+  - Variants: success (green), error (red), info (blue), warning (yellow)
+  - Dismiss X button
+  - Stack up to 3, newest on top
+  - Entry: slide in from right
+  - Exit: fade out
+
+Modal
+  - Centered overlay
+  - Backdrop: rgba(0,0,0,0.4) + backdrop-blur(4px)
+  - Max-width: 480px (sm), 640px (md), 800px (lg)
+  - Close: Esc key + overlay click + X button
+  - Focus trap inside modal
+  - Entry: scale up from 0.95 + fade in
+  - Mobile: full-screen bottom sheet (slide up)
+
+ConfirmDialog
+  - Modal variant
+  - Icon (warning/danger) + title + description
+  - Two buttons: cancel (secondary) + confirm (primary or danger)
+
+ProgressBar
+  - 4px height, radius-full
+  - Accent color animated fill
+  - Percentage label optional
+
+InlineAlert
+  - Full-width banner, radius-md
+  - Left border 4px in semantic color
+  - Icon + message + optional dismiss button
+  - Variants: info, success, warning, error
+
+EmptyState
+  - Centered layout
+  - Minimal line-art illustration
+  - Descriptive heading + body text
+  - Primary CTA button
+
+── SHARED OVERLAYS ─────────────────────────────────────────────────────────────
+
+NotificationDropdown
+  - Triggered by bell icon in top bar
+  - Tabs: Unread / All
+  - List items: icon + title + time ago + read/unread dot
+  - "Mark all as read" action
+  - "View all" link to notifications page
+  - Max height with scroll
+
+GlobalSearch (Cmd+K)
+  - Full-screen overlay with centered search bar
+  - Instant results grouped: Students, Courses, Faculty, Library
+  - Keyboard navigation (arrow keys + enter)
+  - Recent searches section
+
+================================================================================
+SECTION 5: AUTH & ROLE-BASED ACCESS
+================================================================================
+
+ROLES:
+  super_admin, admin, hod, faculty, student, parent, 
+  accounts_staff, librarian, exam_controller, placement_officer, warden
+
+AUTH FLOW:
+  1. User submits credentials to POST /api/v1/auth/login
+  2. Server returns { accessToken (15min), refreshToken (7d) }
+  3. Store accessToken in memory (React state), refreshToken in httpOnly cookie
+  4. Axios interceptor auto-refreshes on 401
+  5. Auth context provides: user, role, permissions, login(), logout()
+  6. Protect routes with middleware.ts (Next.js middleware)
+
+RBAC Rules:
+  - Every page component checks role before rendering
+  - Sidebar nav items filtered by role
+  - API calls include Authorization: Bearer {token}
+  - /dashboard renders different components based on role:
+      student  → StudentDashboard
+      faculty  → FacultyDashboard
+      admin    → AdminDashboard
+      hod      → HODDashboard
+
+Permissions are granular strings, e.g.:
+  attendance:mark, attendance:view, exam:enter_marks, exam:publish_result,
+  fee:collect, fee:view_own, student:create, student:edit, student:delete,
+  library:issue, library:return, report:generate, announcement:create
+
+================================================================================
+SECTION 6: FOLDER STRUCTURE
+================================================================================
+
+src/
+├── app/                          # Next.js App Router
+│   ├── (public)/                 # Public layout group
+│   │   ├── login/page.tsx
+│   │   ├── forgot-password/page.tsx
+│   │   ├── reset-password/[token]/page.tsx
+│   │   ├── verify-email/[token]/page.tsx
+│   │   ├── verify-otp/page.tsx
+│   │   ├── admissions/
+│   │   │   ├── apply/page.tsx
+│   │   │   └── status/page.tsx
+│   │   └── layout.tsx            # Public layout (no sidebar)
+│   ├── (authenticated)/          # Authenticated layout group
+│   │   ├── dashboard/page.tsx
+│   │   ├── profile/page.tsx
+│   │   ├── settings/page.tsx
+│   │   ├── students/
+│   │   │   ├── page.tsx          # Student List
+│   │   │   ├── new/page.tsx      # Add Student
+│   │   │   ├── import/page.tsx   # Bulk Import
+│   │   │   └── [id]/page.tsx     # Student Profile
+│   │   ├── attendance/
+│   │   │   ├── mark/page.tsx
+│   │   │   ├── my/page.tsx
+│   │   │   ├── report/page.tsx
+│   │   │   └── condonation/page.tsx
+│   │   ├── exams/
+│   │   │   ├── page.tsx          # Exam Schedule
+│   │   │   ├── hall-ticket/page.tsx
+│   │   │   ├── marks/page.tsx
+│   │   │   └── revaluation/page.tsx
+│   │   ├── results/
+│   │   │   ├── page.tsx          # Results View
+│   │   │   └── transcript/page.tsx
+│   │   ├── fees/
+│   │   │   ├── page.tsx          # Fee Overview
+│   │   │   ├── pay/page.tsx
+│   │   │   ├── manage/page.tsx   # Fee Structure Admin
+│   │   │   ├── defaulters/page.tsx
+│   │   │   └── receipt/[id]/page.tsx
+│   │   ├── timetable/
+│   │   │   ├── page.tsx          # View Timetable
+│   │   │   ├── manage/page.tsx
+│   │   │   └── substitution/page.tsx
+│   │   ├── courses/
+│   │   │   ├── page.tsx          # Course Catalog
+│   │   │   ├── register/page.tsx
+│   │   │   └── [id]/syllabus/page.tsx
+│   │   ├── faculty/
+│   │   │   ├── page.tsx          # Faculty Directory
+│   │   │   └── [id]/page.tsx     # Faculty Profile
+│   │   ├── leave/
+│   │   │   ├── page.tsx          # Leave Application
+│   │   │   └── approvals/page.tsx
+│   │   ├── library/
+│   │   │   ├── page.tsx          # Library Search
+│   │   │   ├── my-books/page.tsx
+│   │   │   └── manage/page.tsx
+│   │   ├── announcements/page.tsx
+│   │   ├── calendar/page.tsx
+│   │   ├── reports/
+│   │   │   ├── page.tsx          # Reports Builder
+│   │   │   └── accreditation/page.tsx
+│   │   ├── admissions/
+│   │   │   ├── page.tsx          # Admission List (Admin)
+│   │   │   └── seats/page.tsx
+│   │   ├── placement/
+│   │   │   ├── page.tsx          # Placement Dashboard
+│   │   │   ├── drives/page.tsx
+│   │   │   └── companies/page.tsx
+│   │   ├── hostel/
+│   │   │   ├── page.tsx          # Hostel Overview
+│   │   │   ├── rooms/page.tsx
+│   │   │   └── complaints/page.tsx
+│   │   └── layout.tsx            # Authenticated layout (sidebar + topbar)
+│   ├── layout.tsx                # Root layout (html, body, providers)
+│   ├── page.tsx                  # Landing page
+│   ├── not-found.tsx             # 404
+│   └── error.tsx                 # 500
+├── components/
+│   ├── ui/                       # Design system primitives
+│   │   ├── Button/
+│   │   ├── Input/
+│   │   ├── Select/
+│   │   ├── Checkbox/
+│   │   ├── Radio/
+│   │   ├── Toggle/
+│   │   ├── DatePicker/
+│   │   ├── FileUpload/
+│   │   ├── DataTable/
+│   │   ├── StatCard/
+│   │   ├── Avatar/
+│   │   ├── Badge/
+│   │   ├── Skeleton/
+│   │   ├── Modal/
+│   │   ├── Toast/
+│   │   ├── ConfirmDialog/
+│   │   ├── ProgressBar/
+│   │   ├── InlineAlert/
+│   │   ├── EmptyState/
+│   │   ├── Tabs/
+│   │   └── Breadcrumbs/
+│   ├── layout/                   # App shell components
+│   │   ├── Sidebar/
+│   │   ├── TopBar/
+│   │   ├── BottomNav/
+│   │   ├── NotificationDropdown/
+│   │   └── GlobalSearch/
+│   └── modules/                  # Module-specific composed components
+│       ├── dashboard/
+│       │   ├── StudentDashboard.tsx
+│       │   ├── FacultyDashboard.tsx
+│       │   ├── AdminDashboard.tsx
+│       │   └── HODDashboard.tsx
+│       ├── attendance/
+│       │   ├── AttendanceMarker.tsx
+│       │   ├── AttendanceCalendar.tsx
+│       │   └── AttendanceReport.tsx
+│       ├── exam/
+│       │   ├── MarkEntryForm.tsx
+│       │   ├── ResultsTable.tsx
+│       │   └── HallTicketCard.tsx
+│       ├── fee/
+│       │   ├── FeeBreakdown.tsx
+│       │   ├── PaymentFlow.tsx
+│       │   └── ReceiptCard.tsx
+│       └── ... (one folder per module)
+├── contexts/
+│   ├── AuthContext.tsx            # User, role, login, logout
+│   ├── ThemeContext.tsx           # Light/dark toggle
+│   └── AcademicYearContext.tsx    # Current academic year filter
+├── hooks/
+│   ├── useAuth.ts
+│   ├── usePermission.ts          # Check if user has permission
+│   ├── useMediaQuery.ts          # Responsive breakpoint hooks
+│   ├── useDebounce.ts
+│   └── useLocalStorage.ts
+├── lib/
+│   ├── api.ts                    # Axios instance with interceptors
+│   ├── queryClient.ts            # Tanstack Query client config
+│   └── utils.ts                  # formatDate, formatCurrency, cn()
+├── services/                     # API call functions per module
+│   ├── authService.ts
+│   ├── studentService.ts
+│   ├── attendanceService.ts
+│   ├── examService.ts
+│   ├── feeService.ts
+│   ├── timetableService.ts
+│   ├── courseService.ts
+│   ├── hrService.ts
+│   ├── libraryService.ts
+│   ├── notificationService.ts
+│   ├── reportService.ts
+│   ├── placementService.ts
+│   └── hostelService.ts
+├── styles/
+│   ├── globals.css               # Design tokens + reset + base styles
+│   └── animations.css            # Shared keyframes
+├── types/
+│   ├── user.ts
+│   ├── student.ts
+│   ├── attendance.ts
+│   ├── exam.ts
+│   ├── fee.ts
+│   ├── course.ts
+│   ├── faculty.ts
+│   ├── library.ts
+│   ├── notification.ts
+│   └── api.ts                    # Generic API response types
+└── middleware.ts                  # Auth + role route protection
+
+================================================================================
+SECTION 7: PAGE-BY-PAGE BUILD INSTRUCTIONS (ALL 60 PAGES / 187 SCREENS)
+================================================================================
+
+Build each page in this order. For every page:
+  1. Create the page.tsx file in the correct route folder
+  2. Create module-specific components in components/modules/
+  3. Create the API service function in services/
+  4. Define TypeScript types in types/
+  5. Wire up Tanstack Query hooks
+  6. Add CSS Module for page-specific styles
+
+──── MVP PHASE (29 pages, 90 screens) ─────────────────────────────────────────
+
+PAGE 1 — LANDING PAGE (/)
+  Route: src/app/page.tsx
+  Layout: Public (no sidebar)
+  Screens: Hero section with college banner + tagline + "Login" CTA button,
+           feature highlights grid (3 columns), stats counters (students, faculty,
+           departments, placement rate — animated count-up on scroll), footer with
+           contact info and social links.
+  Design: Full-bleed hero with subtle gradient overlay on background image.
+           Cards for features with icons. Responsive: single column on mobile.
+
+PAGE 5 — LOGIN (/login)
+  Route: src/app/(public)/login/page.tsx
+  Layout: Public, split layout
+  Screens: 
+    [Screen 12] Left 60%: minimal illustration or college image. 
+    Right 40%: College logo (48px), "Welcome back" heading (text-2xl), 
+    email input, password input with visibility toggle, "Forgot password?" link
+    (text-sm, accent), full-width primary Login button, divider ("or"), 
+    Google SSO secondary button.
+    [Screen 13] Account locked state: replace form with warning icon + 
+    "Too many failed attempts. Try again in {minutes} minutes." message.
+  Mobile: Form only, full width. Illustration hidden.
+  Animation: Form fades in on load (duration-slow).
+
+PAGE 6 — FORGOT PASSWORD (/forgot-password)
+  Route: src/app/(public)/forgot-password/page.tsx
+  Screens:
+    [Screen 14] Centered card: heading, email/phone input, "Send Reset Link" button.
+    [Screen 15] Success: checkmark animation + "Reset link sent to {email}" + 
+    "Back to login" link.
+
+PAGE 7 — RESET PASSWORD (/reset-password/[token])
+  Route: src/app/(public)/reset-password/[token]/page.tsx
+  Screens:
+    [Screen 16] New password + confirm password fields + Submit button.
+    [Screen 17] Expired link: warning icon + "This link has expired" + 
+    "Request new link" button.
+
+PAGE 8 — EMAIL VERIFICATION (/verify-email/[token])
+  Route: src/app/(public)/verify-email/[token]/page.tsx
+  Screens:
+    [Screen 18] Success: checkmark + "Email verified!" + auto-redirect countdown.
+    [Screen 19] Failed: error icon + "Invalid or expired link" + Resend button.
+
+PAGE 9 — OTP VERIFICATION (/verify-otp)
+  Route: src/app/(public)/verify-otp/page.tsx
+  Screens:
+    [Screen 20] 6 individual digit input boxes + Resend countdown timer + Verify 
+    button. Auto-submit on 6th digit.
+
+PAGES 10-13 — DASHBOARDS (/dashboard)
+  Route: src/app/(authenticated)/dashboard/page.tsx
+  Logic: Read user.role from AuthContext → render role-specific component.
+  
+  [Student Dashboard — Screens 21-25]
+    Row 1: Greeting card with avatar, name, date, weather icon.
+    Row 2: 4 StatCards — Attendance %, CGPA, Fee Due ₹, Library Books count.
+    Row 3: Two-column — Today's Timetable (vertical timeline, current class 
+    highlighted with accent pulse) + Announcements feed (latest 5, "View All").
+    Row 4: Upcoming Exams mini-table + Quick Links grid (4 icon buttons:
+    Pay Fees, Mark Attendance, Results, Library).
+
+  [Faculty Dashboard — Screens 26-29]
+    Row 1: Greeting + "Next class: {subject} in {X} min" countdown card.
+    Row 2: 3 StatCards — Classes Today, Leave Balance, Pending Marks Entries.
+    Row 3: Today's Classes as cards — each card: time, subject, section, room,
+    "Mark Attendance" primary button. + Right: Notices widget.
+    Row 4: Recent Activity feed (timestamped action log).
+
+  [Admin Dashboard — Screens 30-33]
+    Row 1: 4 KPI StatCards — Total Students (trend ↑), Fee Collection % 
+    (donut mini-chart), Avg Attendance %, Placement Rate %.
+    Row 2: Two charts side-by-side — Enrollment Trend (line chart, last 5 years)
+    + Department-wise Attendance (horizontal bar chart).
+    Row 3: Two tables — Recent Admissions (last 10) + Fee Defaulters (top 10 by
+    amount). Each row has quick-action icon buttons.
+    Row 4: Quick Actions grid — 4 cards: Add Student, Generate Report,
+    Send Notice, Manage Fees. Each with icon + label, hover: shadow-md.
+
+  [HOD Dashboard — Screens 34-36]
+    Row 1: 3 StatCards — Dept Students, Dept Avg Attendance, Dept Pass Rate.
+    Row 2: Faculty workload table (name, subjects, hours this week).
+    Row 3: Pending Approvals — Leave requests + Condonation requests, each with
+    approve/reject actions inline.
+
+PAGE 14 — STUDENT LIST (/students)
+  Route: src/app/(authenticated)/students/page.tsx
+  Screens:
+    [Screen 37] Top bar: search input (icon left, placeholder "Search by name,
+    roll, or admission no..."), filter dropdowns (branch, batch, year, section),
+    "Add Student" primary button (right-aligned).
+    [Screen 38] DataTable: columns — avatar+name, roll no, admission no, branch,
+    section, year, status badge, actions (view/edit/deactivate icon buttons).
+    Sortable by name, roll. Paginated 20/page.
+    [Screen 39] Empty state when no students match filter.
+    [Screen 40] Delete confirmation dialog: "Deactivate {name}? They will no 
+    longer be able to login." + Cancel + Deactivate (danger button).
+
+PAGE 15 — STUDENT PROFILE (/students/[id])
+  Route: src/app/(authenticated)/students/[id]/page.tsx
+  Screens:
+    [Screen 41] Left column (320px): avatar (96px), name (text-2xl), admission 
+    no (text-muted), branch + section badge, year, status badge (active/alumni/
+    deactivated).
+    [Screen 42] Tab 1 — Personal Info: read-only field grid (DOB, gender, 
+    category, phone, email, address, guardian name, guardian phone). "Edit" 
+    toggle button top-right switches to editable mode.
+    [Screen 43] Tab 2 — Academic: semester-wise results table (sem, SGPA, 
+    status). Expandable rows show subject details. CGPA sparkline chart.
+    [Screen 44] Tab 3 — Attendance: subject-wise horizontal bar chart + 
+    monthly calendar heatmap (green=present, red=absent, gray=no class).
+    [Screen 45] Tab 4 — Fee: outstanding due card (amount + due date + Pay 
+    button) + payment history table (date, receipt no, amount, method, download).
+    [Screen 46] Tab 5 — Documents: card grid of uploaded documents. Each card:
+    thumbnail preview, document name, upload date, status badge 
+    (pending/verified/rejected), download button.
+
+PAGE 16 — MY PROFILE (/profile)
+  Same as Student Profile but for self. Editable personal fields.
+
+PAGE 17 — ADD/EDIT STUDENT (/students/new, /students/[id]/edit)
+  [Screen 48] Multi-section form with clear headings:
+    Section 1 — Personal: name, DOB (datepicker), gender (radio), category 
+    (select), photo upload.
+    Section 2 — Contact: phone, email, address (textarea).
+    Section 3 — Guardian: name, relation (select), phone, email.
+    Section 4 — Academic: branch (select), section, batch year, admission type.
+    Submit: "Save Student" primary button.
+  [Screen 49] Navigation guard: "You have unsaved changes. Discard?" confirm 
+  dialog on route change.
+
+PAGE 18 — BULK IMPORT (/students/import)
+  [Screen 50] Full-width drag-drop zone (dashed border, file icon, 
+  "Drop CSV or Excel file here" + "Browse" link). Template download link below.
+  [Screen 51] After upload: preview table with row-level validation. Valid rows =
+  normal. Invalid rows = red highlight + error tooltip. Error summary count above.
+  "Import {n} valid rows" button + "Fix errors" message.
+  [Screen 52] During import: progress bar + "{x} of {n} imported" counter.
+  On complete: success summary card (imported/skipped/failed counts).
+
+PAGES 23-26 — ATTENDANCE MODULE
+  
+  PAGE 23 — Mark Attendance (/attendance/mark)
+    [Screen 61] Top: horizontal selector row — department, semester, section, 
+    subject, lecture number (all select dropdowns). Auto-loads on last field.
+    [Screen 62] Desktop: student table — roll no, name, P/A/L segmented toggle 
+    per row. Top actions: "Mark All Present" / "Mark All Absent" buttons.
+    Sticky floating "Save Attendance" button at bottom-right.
+    [Screen 63] Mobile: vertical card list. Each card: student name + roll + 
+    large P/A/L toggle buttons. Swipe between students optional.
+    [Screen 64] Success toast: "Attendance saved for {subject} — {date}"
+
+  PAGE 24 — My Attendance (/attendance/my)
+    [Screen 65] Top hero card: large circle progress ring showing overall %.
+    Color: green (≥75%), yellow (65-74%), red (<65%).
+    [Screen 66] Subject-wise section: horizontal bar chart. Each bar labeled with
+    subject name + percentage. Bars colored by threshold.
+    [Screen 67] Calendar heatmap: monthly view, cells colored by attendance 
+    status. Legend: present (green), absent (red), holiday (gray), no data (white).
+    [Screen 68] If any subject < 75%: inline warning alert at top of page.
+
+  PAGE 25 — Attendance Report (/attendance/report)
+    [Screen 69] Filter bar: department, class, subject selects + date range 
+    picker + "Generate" button.
+    [Screen 70] Report table or matrix view toggle. Matrix: students × dates.
+    Table: student summary with percentages.
+    [Screen 71] Export actions: "Export PDF", "Export Excel" buttons.
+
+  PAGE 26 — Condonation Requests (/attendance/condonation)
+    [Screen 72] Student view: form with subject select, reason textarea, document
+    upload for proof, submit button.
+    [Screen 73] HOD view: queue table with student name, subject, reason,
+    documents link, approve/reject buttons + remarks input.
+
+PAGES 33-37 — FEE & FINANCE MODULE
+
+  PAGE 33 — Fee Overview (/fees)
+    [Screen 92] Top card: Total Due amount (large, accent), due date, pay button.
+    [Screen 93] Fee breakdown table: fee head, amount, paid, remaining columns.
+    [Screen 94] Tab: Payment History — table of past payments with receipt links.
+    [Screen 95] If scholarship: green success banner above breakdown table.
+
+  PAGE 34 — Pay Fees (/fees/pay)
+    [Screen 96] Review card: fee breakdown + deductions + total payable.
+    [Screen 97] Payment method selector: UPI, Net Banking, Card, Wallet cards.
+    [Screen 98] Redirect loading: spinner + "Redirecting to payment gateway..."
+    [Screen 99] Success: animated checkmark + receipt ID + "Download Receipt" + 
+    "Back to Dashboard" buttons.
+    [Screen 100] Failed: error icon + message + "Try Again" button.
+
+  PAGE 35 — Fee Receipt (/fees/receipt/[id])
+    [Screen 101] Print-ready receipt: college header, receipt number, student 
+    details, payment breakdown, total, QR code for verification.
+    [Screen 102] Floating action bar: "Download PDF" + "Print" buttons.
+
+  PAGE 36 — Fee Structure Admin (/fees/manage)
+    [Screen 103] Editable table: fee heads per branch/year/category.
+    [Screen 104] Edit modal: inline fee amount editing.
+    [Screen 105] Version history drawer: past structures with date + diff view.
+
+  PAGE 37 — Defaulter Report (/fees/defaulters)
+    [Screen 106] Filter bar: branch, year, amount range, due date range.
+    [Screen 107] Sortable table: student name, branch, amount due, days overdue.
+    [Screen 108] Bulk select checkboxes + "Send Reminder" button → confirm dialog
+    with count + "Send" CTA.
+
+PAGES 51-52 — COMMUNICATION MODULE
+
+  PAGE 51 — Announcements (/announcements)
+    [Screen 149] Feed layout (max-width 720px, centered): cards with author 
+    avatar + name + timestamp, title (text-lg, bold), body truncated to 3 lines 
+    with "Read more", attachment file chips, scope badge.
+    [Screen 150] Expanded announcement view (inline or modal).
+    [Screen 151] Compose button (FAB on mobile, top-right button on desktop) → 
+    modal: rich text editor, scope selector (All/Dept/Class), file attachments,
+    "Post" primary button.
+    [Screen 152] Delete confirmation dialog.
+
+  PAGE 52 — Academic Calendar (/calendar)
+    [Screen 153] Month grid view: cells with event dots (color-coded by type).
+    Navigation: prev/next month arrows + "Today" button.
+    [Screen 154] Click event → popover with full details.
+    [Screen 155] Admin: "Add Event" button → modal: title, type dropdown 
+    (exam/holiday/event/deadline), date range, description.
+    [Screen 156] "List View" toggle: chronological list alternative.
+
+PAGE 4 — SETTINGS (/settings)
+    [Screen 6] Profile tab: edit name, email, phone, avatar upload.
+    [Screen 7] Security tab: change password form + active sessions list + 
+    MFA enable/disable toggle.
+    [Screen 8] Notifications tab: per-type toggles (email/SMS/push).
+    [Screen 9] Appearance tab: theme toggle + language selector.
+    [Screen 10] Confirm password modal before sensitive changes.
+    [Screen 11] "Logout from all devices" confirmation dialog.
+
+──── v1.1 PHASE (16 pages, 47 screens) ────────────────────────────────────────
+
+[Build following same patterns as MVP — full details in screenInventory.md]
+
+PAGES 19-22: Admission Module
+  - Multi-step application form with stepper progress indicator
+  - Application status timeline tracker
+  - Admin admission list with approve/reject actions
+  - Seat matrix visualization (branch x category grid)
+
+PAGES 27-32: Examination Module
+  - Exam schedule calendar + list view with create modal
+  - Hall ticket PDF preview with blocked state for unpaid fees
+  - Mark entry form with moderation workflow
+  - Results view with semester picker + SGPA/CGPA display
+  - Transcript print-ready preview
+  - Revaluation request with payment integration
+
+PAGES 38-40: Timetable Module
+  - Weekly grid view (desktop) / day view with swipe (mobile)
+  - Drag-and-drop timetable builder with clash detection
+  - Substitution manager with auto-suggested replacements
+
+PAGES 41-43: Course & Curriculum Module
+  - Searchable course catalog with detail drawer
+  - Elective registration with seat limits + waitlist
+  - Syllabus viewer with CO-PO mapping matrix
+
+──── v1.2 PHASE (9 pages, 31 screens) ─────────────────────────────────────────
+
+PAGES 44-47: Faculty & HR Module
+  - Faculty directory (card/table toggle view)
+  - Faculty profile with tabs (quals, publications, workload, leave)
+  - Leave application form with balance display
+  - HOD leave approval queue
+
+PAGES 48-50: Library Module
+  - Book search with filters + detail modal
+  - My books with due dates, renew, fine display
+  - Librarian admin: issue/return forms + overdue report
+
+PAGES 53-54: Reports & Analytics Module
+  - Drag-and-drop report builder with chart/table preview
+  - NAAC/NBA auto-generated report with gap indicators
+
+──── v2.0 PHASE (6 pages, 21 screens) ─────────────────────────────────────────
+
+PAGES 55-57: Placement Module
+  - Placement dashboard with upcoming drives + eligibility
+  - Drive management with JD + eligible students
+  - Company database with history + stats
+
+PAGES 58-60: Hostel Module
+  - Hostel overview with room info + mess menu + complaints
+  - Visual floor plan for room allocation
+  - Complaint system with create/track/resolve flow
+
+================================================================================
+SECTION 8: CROSS-PAGE SYNC RULES
+================================================================================
+
+Every mutation must invalidate related Tanstack Query keys:
+
+  Mark Attendance    → invalidate ["attendance", *], ["students", id]
+  Pay Fee            → invalidate ["fees", *], ["students", id]
+  Enter Marks        → invalidate ["results", *], ["students", id]
+  Apply Leave        → invalidate ["leave", *], ["timetable", *]
+  Post Announcement  → invalidate ["announcements", *]
+  Add/Edit Student   → invalidate ["students"]
+  Issue/Return Book  → invalidate ["library", *]
+  Register Course    → invalidate ["timetable", *], ["attendance", *]
+
+Dashboard widgets use Server-Sent Events (SSE) for live updates with 30s polling
+fallback. All data fetching uses Tanstack Query with staleTime: 30000 (30s).
+
+Global shared state (Auth Context):
+  - currentUser (role, permissions, name, avatar, department)
+  - theme (light/dark) → stored in localStorage
+  - academicYear → URL param or Context
+  - sidebarCollapsed → localStorage
+  - notificationCount → SSE stream
+
+================================================================================
+SECTION 9: PERFORMANCE & ACCESSIBILITY REQUIREMENTS
+================================================================================
+
+PERFORMANCE:
+  - First Contentful Paint ≤ 1.2s
+  - Largest Contentful Paint ≤ 2.0s
+  - Cumulative Layout Shift ≤ 0.1
+  - Initial JS bundle (gzipped) ≤ 200KB per route
+  - CSS (gzipped) ≤ 30KB total
+  - Images: WebP format, lazy-loaded below fold
+  - Font: font-display: swap, subset Inter to Latin only
+
+ACCESSIBILITY (WCAG 2.1 AA):
+  - All interactive elements keyboard-focusable
+  - 2px accent focus ring on :focus-visible
+  - Min 4.5:1 contrast for body text, 3:1 for large text
+  - Semantic HTML (header, nav, main, section, article, footer)
+  - ARIA labels on all icon-only buttons
+  - aria-live="polite" on toast and form error containers
+  - prefers-reduced-motion: disable all animations, use instant transitions
+  - Every form input has a visible <label>
+  - Required fields marked with "*"
+
+RESPONSIVE:
+  - Mobile-first CSS
+  - Tables → card layout on mobile
+  - Sidebar → drawer on mobile
+  - Modals → full-screen bottom sheet on mobile
+  - Charts → stacked full-width on mobile
+  - Timetable week grid → day view with swipe on mobile
+
+================================================================================
+SECTION 10: IMPLEMENTATION ORDER
+================================================================================
+
+Follow this exact order to avoid dependency issues:
+
+STEP 1 — Foundation
+  □ Project init (create-next-app)
+  □ Install all dependencies
+  □ Create globals.css with all design tokens
+  □ Create animations.css
+  □ Setup TypeScript types (types/)
+
+STEP 2 — Design System Components
+  □ Build all ui/ components (Button, Input, Select, DataTable, StatCard, etc.)
+  □ Build layout/ components (Sidebar, TopBar, BottomNav)
+  □ Build shared overlays (NotificationDropdown, GlobalSearch)
+
+STEP 3 — Auth Infrastructure
+  □ AuthContext + useAuth hook
+  □ ThemeContext + useTheme hook
+  □ Axios instance with JWT interceptors
+  □ Tanstack Query client setup
+  □ middleware.ts for route protection
+  □ Public layout + Authenticated layout
+
+STEP 4 — MVP Pages (build in module order)
+  □ Landing page → Login → Forgot/Reset/Verify pages
+  □ Dashboard (all 4 role variants)
+  □ Student module (list, profile, add, import)
+  □ Attendance module (mark, my, report, condonation)
+  □ Fee module (overview, pay, receipt, manage, defaulters)
+  □ Communication module (announcements, calendar)
+  □ Settings page
+
+STEP 5 — v1.1 Pages
+  □ Admission module
+  □ Examination module
+  □ Timetable module
+  □ Course module
+
+STEP 6 — v1.2 Pages
+  □ Faculty & HR module
+  □ Library module
+  □ Reports module
+
+STEP 7 — v2.0 Pages
+  □ Placement module
+  □ Hostel module
+
+================================================================================
+END OF FRONTEND BUILD PROMPT
+Total: 60 pages | 187 screens | 16 modules | 20+ reusable components
+================================================================================

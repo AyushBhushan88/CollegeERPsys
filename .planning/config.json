@@ -1,0 +1,21 @@
+{
+  "workflow": {
+    "auto": true,
+    "current_phase": "initialization"
+  },
+  "tech_stack": {
+    "frontend": "Next.js 14, TypeScript, Tailwind CSS",
+    "backend": "Node.js (Express/Fastify)",
+    "database": "MongoDB",
+    "cache": "Redis",
+    "auth": "JWT, OAuth 2.0",
+    "storage": "MinIO/S3",
+    "messaging": "RabbitMQ",
+    "search": "Elasticsearch"
+  },
+  "preferences": {
+    "tenancy": "multi-tenant",
+    "attendance_mvp": "qr-manual",
+    "data_migration": false
+  }
+}
