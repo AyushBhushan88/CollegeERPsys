@@ -56,6 +56,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Multi-tenant Foundation & SIS | 6/6 | Completed | 2026-04-15 |
-| 2. Academic Core & OBE Engine | 0/4 | In Progress | - |
+| 2. Academic Core & OBE Engine | 4/4 | In Progress | - |
 | 3. Administrative & Operational Modules | 0/1 | Not started | - |
 | 4. Advanced Analytics & Compliance Reporting | 0/1 | Not started | - |
