@@ -58,7 +58,8 @@ Plans:
   2. Students can pay fees online and receive automated PDF receipts with QR codes.
   3. Faculty can manage profiles and request leaves with multi-level approvals.
   4. Library staff can manage a book catalog and track circulations/fines.
-**Plans**: 4 plans
+  5. Institution-wide events are managed via a shared calendar with iCal support.
+**Plans**: 5 plans
 **UI hint**: yes
 
 Plans:
@@ -66,6 +67,7 @@ Plans:
 - [ ] 03-02-PLAN.md — Payment Gateway Integration & Receipt Generation
 - [ ] 03-03-PLAN.md — Faculty & HR Management
 - [ ] 03-04-PLAN.md — Library Management System (Catalog, Circulation, Fines)
+- [ ] 03-05-PLAN.md — Institutional Calendar & Admin Analytics
 
 ---
 
@@ -75,5 +77,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Multi-tenant Foundation & SIS | 6/6 | Completed | 2026-04-15 |
 | 2. Academic Core & OBE Engine | 4/4 | Completed | 2026-04-16 |
-| 3. Administrative & Operational Modules | 0/4 | Not started | - |
+| 3. Administrative & Operational Modules | 0/5 | Not started | - |
 | 4. Advanced Analytics & Compliance Reporting | 0/1 | Not started | - |
