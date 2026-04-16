@@ -49,6 +49,24 @@ Plans:
 - [x] 02-03-PLAN.md — Timetable & Scheduling (TT)
 - [x] 02-04-PLAN.md — Examination Management & Grade Engine (EXAM)
 
+### Phase 3: Administrative & Operational Modules
+**Goal**: Digitise supporting institutional functions (Finance, HR, Library, Calendar).
+**Depends on**: Phase 2
+**Requirements**: FEE-01, FEE-02, FEE-03, FEE-04, FEE-05, HR-01, HR-02, HR-03, LIB-01, LIB-02, LIB-03, COM-02
+**Success Criteria**:
+  1. Admins can define fee structures and generate student-specific fee demands.
+  2. Students can pay fees online and receive automated PDF receipts with QR codes.
+  3. Faculty can manage profiles and request leaves with multi-level approvals.
+  4. Library staff can manage a book catalog and track circulations/fines.
+**Plans**: 4 plans
+**UI hint**: yes
+
+Plans:
+- [ ] 03-01-PLAN.md — Fee Structure & Demand Management
+- [ ] 03-02-PLAN.md — Payment Gateway Integration & Receipt Generation
+- [ ] 03-03-PLAN.md — Faculty & HR Management
+- [ ] 03-04-PLAN.md — Library Management System (Catalog, Circulation, Fines)
+
 ---
 
 ## Progress Table
@@ -57,5 +75,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Multi-tenant Foundation & SIS | 6/6 | Completed | 2026-04-15 |
 | 2. Academic Core & OBE Engine | 4/4 | Completed | 2026-04-16 |
-| 3. Administrative & Operational Modules | 0/1 | Not started | - |
+| 3. Administrative & Operational Modules | 0/4 | Not started | - |
 | 4. Advanced Analytics & Compliance Reporting | 0/1 | Not started | - |
