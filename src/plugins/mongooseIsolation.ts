@@ -46,3 +46,5 @@ export const mongooseTenantIsolation = (schema: Schema, options?: TenantIsolatio
     }
   });
 };
+
+export const mongooseIsolation = mongooseTenantIsolation;

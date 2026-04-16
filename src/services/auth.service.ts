@@ -104,6 +104,8 @@ export class AuthService {
         roles: user.roles,
         permissions: user.permissions || [],
         tenantId: user.tenantId,
+        profileId: user.profileId,
+        profileModel: user.profileModel,
       },
       { expiresIn: '15m' }
     );

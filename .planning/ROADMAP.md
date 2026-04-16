@@ -3,7 +3,7 @@
 ## Phases
 
 - [x] **Phase 1: Multi-tenant Foundation & SIS** - Establish core multi-tenant architecture and primary student records.
-- [ ] **Phase 2: Academic Core & OBE Engine** - Manage teaching-learning processes and outcome-based assessment.
+- [x] **Phase 2: Academic Core & OBE Engine** - Manage teaching-learning processes and outcome-based assessment.
 - [ ] **Phase 3: Administrative & Operational Modules** - Digitise supporting institutional functions (Finance, HR, Library).
 - [ ] **Phase 4: Advanced Analytics & Compliance Reporting** - Provide high-level insights and automated accreditation support.
 
@@ -44,10 +44,10 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 02-01-PLAN.md — Course & Curriculum Management + OBE Engine (CRS)
-- [ ] 02-02-PLAN.md — Attendance Management System (ATT)
-- [ ] 02-03-PLAN.md — Timetable & Scheduling (TT)
-- [ ] 02-04-PLAN.md — Examination Management & Grade Engine (EXAM)
+- [x] 02-01-PLAN.md — Course & Curriculum Management + OBE Engine (CRS)
+- [x] 02-02-PLAN.md — Attendance Management System (ATT)
+- [x] 02-03-PLAN.md — Timetable & Scheduling (TT)
+- [x] 02-04-PLAN.md — Examination Management & Grade Engine (EXAM)
 
 ---
 
@@ -56,6 +56,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Multi-tenant Foundation & SIS | 6/6 | Completed | 2026-04-15 |
-| 2. Academic Core & OBE Engine | 4/4 | In Progress | - |
+| 2. Academic Core & OBE Engine | 4/4 | Completed | 2026-04-16 |
 | 3. Administrative & Operational Modules | 0/1 | Not started | - |
 | 4. Advanced Analytics & Compliance Reporting | 0/1 | Not started | - |
