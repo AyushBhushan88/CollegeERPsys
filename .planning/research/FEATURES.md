@@ -1,64 +1,63 @@
 # Feature Landscape
 
 **Domain:** College ERP System
-**Researched:** 2024-04-14
+**Researched:** 2024-05-22
+**Confidence:** HIGH
 
-## Table Stakes
+## Table Stakes (Compliance Focus)
 
-Features users expect in any modern College ERP.
+Features required for basic operations and NAAC/NBA compliance.
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Student Profile (SIS) | Core identity record. | Low | Includes document uploads. |
-| Attendance Marking | Daily faculty operation. | Low | Subject-wise and daily views. |
-| Fee Management | Essential for survival. | Medium | Integration with Razorpay/Stripe. |
-| Exam & Result Mgmt | Critical academic milestone. | High | Needs grading scheme flexibility. |
-| Timetable Generator | Operational necessity. | High | Constraint-based solving. |
+| Feature | Key Metrics for Accreditation | Complexity | Notes |
+|---------|------------------------------|------------|-------|
+| **Student Performance (SIS)** | Pass %, Graduation Rate (without backlogs), CGPA, SSS Readiness. | Medium | Mandatory for NAAC Criterion 2 & 5. |
+| **Faculty Mgmt (HRMS)** | PhD/NET Qualifications, Research Publications (UGC-CARE), FDPs (min 5 days). | Medium | Mandatory for NAAC Criterion 3 & 5. |
+| **Financial Health** | Infrastructure Augmentation, Library Spend, Maintenance Costs. | Medium | Required for NAAC Criterion 4. |
+| **Placement Cell** | Placement %, Median Salary, Higher Study Proofs (ID cards/Letters). | Medium | High weightage for NBA & NIRF. |
+| **OBE Engine** | CO-PO Attainment, Course Articulation Matrix. | High | Essential for NBA SAR. |
 
 ## Differentiators
 
-Features that set this ERP apart, specifically for NAAC/NBA.
+Features that set this ERP apart and add immense value for institutional IQAC.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| OBE Engine | Automated CO-PO attainment. | High | Required for NBA SAR. |
-| Evidence Vault | Single-click DVV readiness. | Medium | Maps every activity to criteria. |
-| AQAR/SSR Automator | Save months of manual work. | Medium | Auto-fills 60% of NAAC reports. |
-| Shortage Alerts | Proactive parent engagement. | Low | Automated SMS/WhatsApp. |
-| Student Analytics | Predictive fail/success flags. | Medium | Helps IQAC intervene early. |
+| **Evidence Vault** | Single-click DVV readiness; maps every activity/record to a NAAC criterion. | Medium | Prevents "document hunt" during visits. |
+| **AQAR/SSR Automator** | Generates pre-filled NAAC SSR/NBA SAR templates using system data. | High | Saves months of manual data entry. |
+| **Custom Report Builder** | Allows IQAC to create any cross-tenant report using MongoDB aggregation. | High | Flexible for local institutional needs. |
+| **Alumni Connect** | Tracking career progression 3-5 years post-graduation. | Medium | Needed for PEO (Program Educational Objectives). |
+| **Pre-Calculated Dashboards** | Real-time SFR (Student-Faculty Ratio) and Cadre Ratio tracking. | Low | Essential for maintaining NBA eligibility. |
 
 ## Anti-Features
 
-Features to explicitly NOT build to avoid scope creep or maintenance burden.
-
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| Custom DB Schema | Hard to scale across tenants. | Shared-schema with RLS. |
-| Legacy Data Migration | Extremely high labor cost. | Provide CSV/Excel import templates. |
-| Mobile Native Apps | High development cost. | Build a high-quality PWA. |
-| Per-college custom CSS | Maintenance nightmare. | Use a themeable Tailwind config. |
+| Multi-schema DB | Complexity in migrations and system overhead. | Single-schema with `tenantId` discriminator. |
+| Manual Excel Uploads | Prone to error and "data cooking." | Provide structured templates with validation (Zod). |
+| Native Apps | High dev/maintenance cost across platforms. | Responsive PWA with deep-linking. |
 
 ## Feature Dependencies
 
 ```
-SIS → Fee Structure (Fees depend on student category)
-SIS → Attendance (Attendance needs student list)
-Course Mgmt → OBE Engine (CO-PO mapping requires course catalog)
-Marks Entry → OBE Engine (Attainment needs exam results)
-OBE Engine → NBA Report (NBA SAR requires attainment scores)
+SIS → Exam Mgmt (Student list required for exam)
+Exam Mgmt → OBE Engine (Marks entry fuels attainment calculation)
+Faculty HRMS → NAAC Reports (Publications & FDPs used in Criterion 3)
+Finance → Infrastructure Reports (Audit statements for Criterion 4)
+Alumni Portal → Placement Reports (Higher study proof & Salary details)
 ```
 
 ## MVP Recommendation
 
 Prioritize:
-1. **Multi-tenant SIS & Auth** (The core)
-2. **Attendance & Parent Alerts** (Immediate value)
-3. **Fee Payment & Receipts** (Financial stability)
-4. **Basic OBE Engine** (The differentiator)
+1. **Multi-tenant Foundation** (Auth, SIS, Roles)
+2. **Academic Core** (Attendance, Marks, CO-PO Mapping)
+3. **Evidence Vault** (MinIO integration for document proof)
+4. **Basic NAAC/NBA Metrics** (Pass %, SFR, SFR, Research Counts)
 
-Defer: **Hostel Management**, **Library Management**, **Placement Cell** to Phase 2/3.
+Defer: **Library**, **Hostel**, **Inventory** to subsequent phases.
 
 ## Sources
 
 - [NAAC Assessment Framework 2024](http://www.naac.gov.in/)
-- [NBA Accreditation Manual 2024](https://www.nbaind.org/)
+- [NBA SAR Tier I/II Manuals 2024](https://www.nbaind.org/)
+- [NIRF Ranking Parameters]

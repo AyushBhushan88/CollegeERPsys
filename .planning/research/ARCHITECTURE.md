@@ -1,71 +1,82 @@
 # Architecture Patterns
 
 **Domain:** Multi-tenant College ERP
-**Researched:** 2024-04-14
+**Researched:** 2024-05-22
+**Confidence:** HIGH
 
-## Recommended Architecture: Shared-Schema RLS
+## Recommended Architecture: Metadata-Driven Shared-Schema
 
-The system uses a single PostgreSQL database with a `tenant_id` (UUID) column on every table. Isolation is enforced by the database engine itself using Row-Level Security (RLS).
+The system uses a single MongoDB database with a `tenantId` (ObjectId) discriminator on every collection. Isolation is enforced at the application layer through specialized Mongoose middleware and a global request context.
 
 ### Component Boundaries
 
 | Component | Responsibility | Communicates With |
 |-----------|---------------|-------------------|
-| **Auth Service** | Identity, Multi-tenant JWTs. | PostgreSQL, Redis. |
-| **SIS Service** | Student Lifecycle Mgmt. | PostgreSQL, Elasticsearch. |
-| **OBE Engine** | Attainment calculation logic. | PostgreSQL, Academic Core. |
-| **Evidence Vault** | S3 metadata & file mapping. | MinIO, PostgreSQL. |
-| **Report Worker** | Async NAAC/NBA report gen. | RabbitMQ, Redis. |
+| **Auth Service** | Identity, Multi-tenant JWTs (tenantId embedded). | MongoDB, Redis. |
+| **SIS/HRMS Service** | Lifecycle Management. | MongoDB. |
+| **OBE Engine** | Attainment calculation logic. | MongoDB, Exam Service. |
+| **Report Builder** | Dynamic aggregation pipeline factory. | MongoDB, BullMQ. |
+| **Evidence Vault** | S3 metadata & NAAC criterion mapping. | MinIO, MongoDB. |
 
-### Data Flow for Multi-tenancy
+### Data Flow for Multi-tenant Reports
 
-1. **Request Reception:** Application receives HTTP request with a Tenant Identifier (e.g., `x-tenant-id` header or subdomain).
-2. **Context Setup:** Middleware extracts the identifier and stores it in `AsyncLocalStorage`.
-3. **DB Execution:**
-   - Transaction begins.
-   - `SET LOCAL app.current_tenant_id = '...'` is executed.
-   - Main query runs. PostgreSQL automatically applies the policy: `WHERE tenant_id = current_setting('app.current_tenant_id')`.
-4. **Cleanup:** Transaction ends, local setting is cleared, connection returned to pool.
+1. **Request Reception:** Client sends a `ReportDefinition` JSON (filters, groups, metrics).
+2. **Context Setup:** Middleware extracts `tenantId` from JWT and stores in `AsyncLocalStorage`.
+3. **Pipeline Factory:**
+   - **Step 1 (Security):** Prepend `{ $match: { tenantId: currentTenantId } }`.
+   - **Step 2 (Filter):** Translate UI filters to MongoDB `$match` operators.
+   - **Step 3 (Reshape):** If using the **Attribute Pattern**, use `$addFields` and `$filter` to lift custom fields to the root level.
+   - **Step 4 (Aggregate):** Apply `$group`, `$facet`, or `$pivot` based on the definition.
+4. **Execution:** Run the aggregation via Mongoose and stream results to CSV/Excel using BullMQ for long-running reports.
 
 ## Patterns to Follow
 
-### Pattern 1: Tenant-Aware Repository
-Encapsulate the session-setting logic in a base repository or a database wrapper to ensure it is never missed.
-
+### Pattern 1: The Attribute Pattern for Custom Fields
+Avoid frequent schema migrations by storing institutional-specific fields in an array.
 ```typescript
-// Drizzle implementation example
-async function tenantTransaction<T>(cb: (tx: any) => Promise<T>) {
-  const tenantId = storage.getStore()?.tenantId;
-  return await db.transaction(async (tx) => {
-    await tx.execute(sql`SET LOCAL app.current_tenant_id = ${tenantId}`);
-    return await cb(tx);
-  });
-}
+const attributeSchema = new Schema({
+  k: String, // e.g., "blood_group"
+  v: Schema.Types.Mixed // e.g., "O+"
+});
+// Index: { tenantId: 1, "attributes.k": 1, "attributes.v": 1 }
 ```
 
-### Pattern 2: Evidence Mapping (Evidence-as-a-Resource)
-Every table that represents an activity (Seminar, Publication, Event) should have a polymorphic relationship or a standard link to the `EvidenceVault` table.
+### Pattern 2: Global Mongoose Multi-tenancy
+Use a plugin to automatically inject the `tenantId` filter into `find`, `update`, `aggregate`, etc.
+```typescript
+// mongooseIsolation.ts implementation
+schema.pre(['find', 'findOne', 'countDocuments', 'aggregate'], function() {
+  const tenantId = storage.getStore()?.tenantId;
+  if (!tenantId) throw new Error("Tenant Context Missing");
+  
+  if (this instanceof mongoose.Aggregate) {
+    this.pipeline().unshift({ $match: { tenantId } });
+  } else {
+    this.where({ tenantId });
+  }
+});
+```
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Code-only filtering
-**What:** Adding `.where(eq(table.tenantId, tenantId))` to every single query in the application.
-**Why bad:** Human error will eventually lead to a missing filter, causing a critical cross-tenant data leak.
-**Instead:** Let RLS handle the "Where" clause implicitly.
+### Anti-Pattern 1: Large `$lookup` in Aggregations
+**Why bad:** Performance degrades significantly as data grows.
+**Instead:** Denormalize critical reporting fields (e.g., store `department_name` in the `Student` document) or use pre-calculated statistics in a separate collection.
 
-### Anti-Pattern 2: Large Schema-per-tenant
-**What:** Creating a new schema `college_a`, `college_b` for each institution.
-**Why bad:** PostgreSQL system catalog performance degrades, and running migrations across 100+ schemas is unreliable.
+### Anti-Pattern 2: Manual Pipeline String Interpolation
+**Why bad:** Vulnerable to "NoSQL Injection."
+**Instead:** Use a structured JSON schema for report definitions and validate with Zod before converting to an aggregation pipeline.
 
 ## Scalability Considerations
 
-| Concern | At 1000 users | At 10K users | At 100K users |
-|---------|--------------|--------------|-------------|
-| DB Load | Single instance (8GB) | Vertical scale (16GB) | Read-replicas / Sharding |
-| Search | PostgreSQL `ILIKE` | GIN Indexes / Trigram | Elasticsearch / Algolia |
-| Files | Local Disk | MinIO / S3 | CDN (CloudFront) |
+| Concern | 1,000 Users | 10,000 Users | 100,000+ Users |
+|---------|--------------|--------------|---------------|
+| DB Load | M0/M10 Atlas Cluster | Dedicated M30+ | Sharding by `tenantId` |
+| Analytics | Raw Aggregations | Computed Pattern (Bucketing) | Data Lake / BigQuery Sync |
+| Reports | Real-time APIs | BullMQ Async Generation | Dedicated Reporting Replica |
 
 ## Sources
 
-- [PostgreSQL Row-Level Security (RLS) best practices 2024]
-- [AsyncLocalStorage Node.js Documentation]
+- [MongoDB Multi-tenant Schema Design Patterns]
+- [Mongoose Plugins Documentation]
+- [NAAC/NBA Reporting Requirements 2024]

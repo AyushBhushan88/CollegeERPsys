@@ -4,7 +4,7 @@
 
 - [x] **Phase 1: Multi-tenant Foundation & SIS** - Establish core multi-tenant architecture and primary student records.
 - [x] **Phase 2: Academic Core & OBE Engine** - Manage teaching-learning processes and outcome-based assessment.
-- [ ] **Phase 3: Administrative & Operational Modules** - Digitise supporting institutional functions (Finance, HR, Library).
+- [x] **Phase 3: Administrative & Operational Modules** - Digitise supporting institutional functions (Finance, HR, Library).
 - [ ] **Phase 4: Advanced Analytics & Compliance Reporting** - Provide high-level insights and automated accreditation support.
 
 ---
@@ -63,11 +63,27 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 03-01-PLAN.md — Fee Structure & Demand Management
-- [ ] 03-02-PLAN.md — Payment Gateway Integration & Receipt Generation
-- [ ] 03-03-PLAN.md — Faculty & HR Management
-- [ ] 03-04-PLAN.md — Library Management System (Catalog, Circulation, Fines)
-- [ ] 03-05-PLAN.md — Institutional Calendar & Admin Analytics
+- [x] 03-01-PLAN.md — Fee Structure & Demand Management
+- [x] 03-02-PLAN.md — Payment Gateway Integration & Receipt Generation
+- [x] 03-03-PLAN.md — Faculty & HR Management
+- [x] 03-04-PLAN.md — Library Management System (Catalog, Circulation, Fines)
+- [x] 03-05-PLAN.md — Institutional Calendar & Admin Analytics
+
+### Phase 4: Advanced Analytics & Compliance Reporting
+**Goal**: Provide high-level insights and automated accreditation support (NAAC/NBA).
+**Depends on**: Phase 3
+**Requirements**: RPT-01, RPT-02, RPT-03
+**Success Criteria**:
+  1. Admins can view real-time KPIs for enrollment, fees, and academic performance on a dashboard.
+  2. Users can build and save custom reports using a metadata-driven dynamic aggregation engine.
+  3. The system can generate background accreditation reports (NAAC SSR/NBA SAR) and store them in MinIO.
+**Plans**: 3 plans
+**UI hint**: yes
+
+Plans:
+- [ ] 04-01-PLAN.md — Analytics Service & Management Dashboards
+- [ ] 04-02-PLAN.md — Custom Report Builder (Dynamic Aggregation Engine)
+- [ ] 04-03-PLAN.md — Compliance Engine (NAAC/NBA Async Reports)
 
 ---
 
@@ -77,5 +93,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Multi-tenant Foundation & SIS | 6/6 | Completed | 2026-04-15 |
 | 2. Academic Core & OBE Engine | 4/4 | Completed | 2026-04-16 |
-| 3. Administrative & Operational Modules | 0/5 | Not started | - |
-| 4. Advanced Analytics & Compliance Reporting | 0/1 | Not started | - |
+| 3. Administrative & Operational Modules | 5/5 | Completed | 2026-04-17 |
+| 4. Advanced Analytics & Compliance Reporting | 0/3 | In Progress | - |

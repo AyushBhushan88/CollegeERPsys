@@ -1,54 +1,57 @@
 # Domain Pitfalls: College ERP
 
 **Domain:** Higher Education Enterprise Resource Planning
-**Researched:** 2024-04-14
+**Researched:** 2024-05-22
+**Confidence:** HIGH
 
 ## Critical Pitfalls
 
-### Pitfall 1: Tenant Data Leakage (The "SaaS Killer")
-**What goes wrong:** A student from College A can see fees or results of a student from College B.
-**Why it happens:** Most Node.js developers use connection pools. If a connection is returned to the pool with a tenant's session variable still set, the next request using that connection might inherit the previous tenant's identity.
-**Prevention:** 
-1. Always use `SET LOCAL` within a transaction (it resets on commit/rollback).
-2. Use `AsyncLocalStorage` to maintain request-scoped tenant context.
-3. Test with a "chaos" script that makes concurrent requests for different tenants.
+### Pitfall 1: NoSQL Injection in Custom Reports
+**What goes wrong:** A user provides a malicious operator (e.g., `$where`) in a report definition, causing data leakage or remote code execution.
+**Prevention:**
+1. **Zod Validation:** Strictly validate the keys and operators in the `ReportDefinition` JSON.
+2. **Whitelist Operators:** Allow only a small subset of safe operators (`$eq`, `$gt`, `$in`, etc.) for user-defined filters.
+3. **Implicit `tenantId`:** Always force a `{ $match: { tenantId } }` stage as the very first stage in the pipeline.
 
 ### Pitfall 2: Audit Trail Inconsistency
 **What goes wrong:** DVV (Data Validation) finds marks in the ERP that don't match the original answer sheet, and there's no record of who changed them.
-**Why it happens:** Traditional CRUD operations over-write data without versioning or history.
+**Why it happens:** Traditional CRUD operations overwrite data without history.
 **Prevention:**
-1. Implement **immutable event logs** for all marks and result changes.
-2. Use triggers or application-level "Audit Service" to log: (user_id, table, record_id, old_val, new_val, timestamp).
+1. **Audit Logs:** Use Mongoose middleware to log every update: `(user, collection, docId, changes, timestamp)`.
+2. **Immutability:** Marks, once submitted, should only be changeable via a "Request/Approve" workflow with a versioned trail.
 
 ### Pitfall 3: CO-PO Attainment Calculation Gaps
 **What goes wrong:** The NBA SAR report shows 100% attainment for all students, which looks suspicious to auditors.
-**Why it happens:** The calculation logic doesn't account for indirect attainment (surveys) or doesn't allow for "Gaps" (real-world deviations).
+**Why it happens:** The calculation doesn't account for "indirect attainment" (surveys) or doesn't allow for identifying "non-attainment" areas.
 **Prevention:**
 1. Ensure the OBE engine includes both Direct (Marks) and Indirect (Surveys) components.
-2. Allow for "target" setting and identification of non-attainment.
+2. Allow for custom "target" levels for different programs.
 
 ## Moderate Pitfalls
 
-### Pitfall 4: Subdomain vs Header for Tenant Discovery
-**What goes wrong:** SSL/CORS issues if using subdomains (`college-a.erp.com`) vs simple headers.
-**Prevention:** Use subdomains for cleaner URL structure but ensure wildcard SSL certificates and CORS middleware are configured early.
+### Pitfall 4: Memory Bloat in Reports
+**What goes wrong:** Large PDF/Excel reports cause the Node.js process to crash (OOM).
+**Why it happens:** Attempting to load 10,000+ student records into an array before processing.
+**Prevention:**
+1. **Streaming:** Use MongoDB cursors and stream results directly to the response or a file.
+2. **BullMQ:** Offload report generation to a background worker and notify the user when ready.
 
-## Minor Pitfalls
-
-### Pitfall 5: Library Catalog Performance
-**What goes wrong:** Search for "Engineering Physics" takes 5 seconds.
-**Why it happens:** Simple `ILIKE %query%` on 50,000+ books with no indexing.
-**Prevention:** Use GIN indexes or trigram search in PostgreSQL from Day 1.
+### Pitfall 5: Broken Evidence Links
+**What goes wrong:** During a NAAC visit, a link to a "PhD Certificate" leads to a 404.
+**Prevention:**
+1. Use UUIDs for MinIO filenames.
+2. Implement soft-deletes for evidence metadata to prevent accidental link breakage.
 
 ## Phase-Specific Warnings
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |-------------|---------------|------------|
-| Foundation | RLS Bypass | Ensure the application user is NOT a superuser/owner. |
-| SIS | PII Exposure | Encrypt Aadhaar/Personal IDs at rest using `pgcrypto`. |
-| Compliance | Broken Evidence Links | Use UUIDs for files and ensure soft-deletes for metadata. |
+| Foundation | Tenant Leakage | Test with a "chaos" script that makes concurrent requests for different tenants. |
+| SIS/HRMS | PII Exposure | Strictly control access to Aadhaar/Bank details using RBAC. |
+| Reports | Aggregation Timeout | Add a max execution time to custom report aggregations. |
 
 ## Sources
 
-- [PostgreSQL Row Level Security (RLS) Pitfalls - dev.to]
-- [DVV Best Practices - NAAC Official Guidelines]
+- [MongoDB Security Best Practices]
+- [NAAC Data Validation and Verification (DVV) Manual]
+- [OWASP NoSQL Injection Prevention Cheat Sheet]
