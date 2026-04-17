@@ -25,13 +25,17 @@ declare module 'fastify' {
       MINIO_ACCESS_KEY: string;
       MINIO_SECRET_KEY: string;
       MINIO_USE_SSL: boolean;
+      RAZORPAY_KEY_ID: string;
+      RAZORPAY_KEY_SECRET: string;
+      RAZORPAY_WEBHOOK_SECRET: string;
+      BASE_URL: string;
     };
   }
 }
 
 const schema = {
   type: 'object',
-  required: ['MONGODB_URI', 'REDIS_URL', 'JWT_SECRET', 'MINIO_ENDPOINT', 'MINIO_PORT', 'MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY'],
+  required: ['MONGODB_URI', 'REDIS_URL', 'JWT_SECRET', 'MINIO_ENDPOINT', 'MINIO_PORT', 'MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET'],
   properties: {
     PORT: {
       type: 'integer',
@@ -66,6 +70,19 @@ const schema = {
     MINIO_USE_SSL: {
       type: 'boolean',
       default: false
+    },
+    RAZORPAY_KEY_ID: {
+      type: 'string'
+    },
+    RAZORPAY_KEY_SECRET: {
+      type: 'string'
+    },
+    RAZORPAY_WEBHOOK_SECRET: {
+      type: 'string'
+    },
+    BASE_URL: {
+      type: 'string',
+      default: 'http://localhost:3000'
     }
   }
 };
@@ -88,6 +105,14 @@ export async function buildApp(): Promise<FastifyInstance> {
   await connectDB(app);
   await connectRedis(app);
   await connectMinio(app);
+
+  // Register raw body support for signature verification
+  await app.register(import('fastify-raw-body'), {
+    field: 'rawBody',
+    global: false,
+    encoding: 'utf8',
+    runFirst: true
+  });
 
   // Register multipart support for file uploads
   await app.register(import('@fastify/multipart'), {

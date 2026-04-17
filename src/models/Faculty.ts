@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
+import { mongooseIsolation } from '../plugins/mongooseIsolation';
 
 export interface IFaculty extends Document {
   userId: Types.ObjectId;
@@ -61,5 +62,7 @@ const FacultySchema: Schema = new Schema({
 });
 
 FacultySchema.index({ tenantId: 1, department: 1 });
+
+FacultySchema.plugin(mongooseIsolation);
 
 export const Faculty = mongoose.model<IFaculty>('Faculty', FacultySchema);

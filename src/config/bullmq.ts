@@ -10,5 +10,7 @@ export const connection: ConnectionOptions = new Redis(REDIS_URL, {
 
 export const shortageQueue = new Queue('shortage-check', { connection });
 export const hallTicketQueue = new Queue('hall-ticket-gen', { connection });
+export const feeOverdueQueue = new Queue('fee-overdue-check', { connection });
+export const libQueue = new Queue('lib-fine-update', { connection });
 
 export default shortageQueue;
