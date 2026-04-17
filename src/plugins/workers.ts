@@ -10,6 +10,7 @@ export default fp(async function (fastify: FastifyInstance, opts: FastifyPluginO
     const { libWorker } = await import('../workers/lib.worker.js');
     const { shortageWorker } = await import('../workers/att.worker.js');
     const { examWorker } = await import('../workers/exam.worker.js');
+    const { complianceWorker } = await import('../workers/compliance.worker.js');
 
     fastify.log.info('BullMQ workers initialized');
 
@@ -19,7 +20,8 @@ export default fp(async function (fastify: FastifyInstance, opts: FastifyPluginO
         feeWorker.close(),
         libWorker.close(),
         shortageWorker.close(),
-        examWorker.close()
+        examWorker.close(),
+        complianceWorker.close()
       ]);
       fastify.log.info('BullMQ workers closed');
     });
